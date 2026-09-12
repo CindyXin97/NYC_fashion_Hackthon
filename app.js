@@ -18,7 +18,9 @@ const state = {
     brand: "The Row & Khaite",
     notes: ""
   },
-  cartItems: []
+  cartItems: [],
+  capturedPhoto: null,
+  capturedVideo: null
 };
 
 // DOM Element Selectors
@@ -28,6 +30,23 @@ const DOM = {
   toggleCameraBtn: document.getElementById('toggle-camera-btn'),
   cyclePresetBtn: document.getElementById('cycle-preset-btn'),
   captureSnapshotBtn: document.getElementById('capture-snapshot-btn'),
+  recordVideoBtn: document.getElementById('record-video-btn'),
+  recordVideoLabel: document.getElementById('record-video-label'),
+  vonageConfigBtn: document.getElementById('vonage-config-btn'),
+  vonageModal: document.getElementById('vonage-modal'),
+  closeVonageModalBtn: document.getElementById('close-vonage-modal-btn'),
+  saveVonageConfigBtn: document.getElementById('save-vonage-config-btn'),
+  vonageApiKeyInput: document.getElementById('vonage-api-key-input'),
+  vonageSessionIdInput: document.getElementById('vonage-session-id-input'),
+  vonageTokenInput: document.getElementById('vonage-token-input'),
+  vonageConnStatus: document.getElementById('vonage-conn-status'),
+  vonageHudBadge: document.getElementById('vonage-hud-badge'),
+  capturedMediaPanel: document.getElementById('captured-media-panel'),
+  photoPreviewCard: document.getElementById('photo-preview-card'),
+  capturedPhotoImg: document.getElementById('captured-photo-img'),
+  videoPreviewCard: document.getElementById('video-preview-card'),
+  capturedVideoPlayer: document.getElementById('captured-video-player'),
+  videoMetaLabel: document.getElementById('video-meta-label'),
   hudStatus: document.getElementById('hud-status'),
   hudStatusText: document.getElementById('hud-status-text'),
   detectedItemsText: document.getElementById('detected-items-text'),
@@ -81,61 +100,206 @@ window.addEventListener('DOMContentLoaded', () => {
   initCartListeners();
   initTinderActionButtons();
   initScreenNavigation();
+  initVonageConfigListeners();
   
   // Preload initial look pieces into cart
   addLookToCart(state.deck[0], false);
   renderSwipeDeck();
 });
 
-// 1. Video Context & Camera Handler
+// 1. Video Context & Vonage Video API Handler
 async function initVideoContext() {
-  try {
-    const constraints = { video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" } };
-    state.stream = await navigator.mediaDevices.getUserMedia(constraints);
-    DOM.video.srcObject = state.stream;
-    DOM.video.style.display = 'block';
-    DOM.demoImage.style.display = 'none';
-    state.isCameraActive = true;
-    updateHudStatus("LIVE WEBCAM STREAM", true);
-  } catch (err) {
-    console.warn("Webcam unavailable, falling back to preset demo:", err);
+  const publisherContainerId = 'vonage-publisher-container';
+
+  // 1. Attempt Vonage Video API Publisher Initialization
+  if (window.vonageService) {
+    try {
+      const res = await window.vonageService.initPublisher(publisherContainerId, (status) => {
+        updateHudStatus(status.label, status.active);
+        if (DOM.vonageHudBadge) {
+          DOM.vonageHudBadge.textContent = status.mode === 'session-connected' 
+            ? 'VONAGE CLOUD LIVE' 
+            : 'VONAGE 720p 30FPS';
+        }
+      });
+
+      if (res && res.success) {
+        state.isCameraActive = true;
+        DOM.video.style.display = 'none';
+        DOM.demoImage.style.display = 'none';
+        const pubBox = document.getElementById(publisherContainerId);
+        if (pubBox) pubBox.style.display = 'block';
+      } else {
+        loadPreset(0);
+      }
+    } catch (e) {
+      console.warn('[FitSwipe] Vonage init error, falling to preset:', e);
+      loadPreset(0);
+    }
+  } else {
     loadPreset(0);
   }
 
+  // Toggle Live Camera
   DOM.toggleCameraBtn.addEventListener('click', async () => {
-    if (state.isCameraActive && state.stream) {
-      state.stream.getTracks().forEach(track => track.stop());
+    const pubBox = document.getElementById(publisherContainerId);
+    if (state.isCameraActive) {
       state.isCameraActive = false;
+      if (pubBox) pubBox.style.display = 'none';
       loadPreset(state.activePresetIndex);
+      updateHudStatus("DEMO PRESET ACTIVE", false);
     } else {
-      try {
-        state.stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        DOM.video.srcObject = state.stream;
-        DOM.video.style.display = 'block';
+      if (window.vonageService) {
+        if (pubBox) pubBox.style.display = 'block';
         DOM.demoImage.style.display = 'none';
+        DOM.video.style.display = 'none';
         state.isCameraActive = true;
-        updateHudStatus("LIVE WEBCAM ACTIVE", true);
-      } catch (err) {
-        alert("Camera permission not available. Using curated demo presets.");
+        await window.vonageService.initPublisher(publisherContainerId, (status) => {
+          updateHudStatus(status.label, status.active);
+        });
+      } else {
         loadPreset(state.activePresetIndex);
       }
     }
   });
 
+  // Cycle Demo Presets
   DOM.cyclePresetBtn.addEventListener('click', () => {
     state.activePresetIndex = (state.activePresetIndex + 1) % DEMO_PRESETS.length;
     loadPreset(state.activePresetIndex);
   });
 
+  // Take Snapshot Photo via Vonage Video API
   DOM.captureSnapshotBtn.addEventListener('click', () => {
     flashCaptureEffect();
-    appendChatMessage('stylist', `📸 Captured new visual frame! Analyzing silhouette (${DOM.silhouetteLabel.textContent}) and updating recommendations.`);
+
+    let photoData = null;
+    if (window.vonageService && state.isCameraActive) {
+      const result = window.vonageService.takePhoto();
+      if (result && result.success) {
+        photoData = result.dataUrl;
+      }
+    }
+
+    // If no camera active, capture current demo image
+    if (!photoData) {
+      photoData = DOM.demoImage.src || DEMO_PRESETS[state.activePresetIndex].image;
+    }
+
+    state.capturedPhoto = photoData;
+    displayCapturedPhoto(photoData);
+
+    appendChatMessage('stylist', `📸 [Vonage Video API] High-resolution outfit snapshot captured! Analyzing neckline, texture drape, and silhouette palette for Gemini styling synthesis.`);
+  });
+
+  // Record Video Clip via Vonage Video API
+  if (DOM.recordVideoBtn) {
+    DOM.recordVideoBtn.addEventListener('click', () => {
+      if (!window.vonageService || !state.isCameraActive) {
+        alert("Please turn on the live Vonage camera to record a video clip.");
+        return;
+      }
+
+      if (window.vonageService.isRecording) {
+        // Stop recording
+        window.vonageService.stopVideoRecording();
+        return;
+      }
+
+      // Start 5-second video recording from Vonage stream
+      DOM.recordVideoBtn.classList.add('btn-recording-pulse');
+      DOM.recordVideoLabel.textContent = '⏹️ Recording (5s)...';
+
+      window.vonageService.startVideoRecording(
+        5,
+        (remainingSecs) => {
+          DOM.recordVideoLabel.textContent = `⏹️ Recording (${remainingSecs}s)...`;
+        },
+        (result) => {
+          DOM.recordVideoBtn.classList.remove('btn-recording-pulse');
+          DOM.recordVideoLabel.textContent = '🎥 Record Video (Vonage)';
+
+          if (result && result.success) {
+            state.capturedVideo = result.blobUrl;
+            displayCapturedVideo(result.blobUrl, result.duration);
+            flashCaptureEffect();
+            appendChatMessage('stylist', `🎥 [Vonage Video API] 5-second video clip captured from stream! Dynamic motion & silhouette angles ingested for personalized fit match.`);
+          } else {
+            console.warn('[FitSwipe] Recording error:', result?.error);
+          }
+        }
+      );
+    });
+  }
+}
+
+// Display Captured Photo in Tray
+function displayCapturedPhoto(dataUrl) {
+  if (!DOM.capturedMediaPanel) return;
+  DOM.capturedMediaPanel.style.display = 'block';
+  DOM.photoPreviewCard.style.display = 'block';
+  DOM.capturedPhotoImg.src = dataUrl;
+}
+
+// Display Captured Video in Tray
+function displayCapturedVideo(blobUrl, duration) {
+  if (!DOM.capturedMediaPanel) return;
+  DOM.capturedMediaPanel.style.display = 'block';
+  DOM.videoPreviewCard.style.display = 'block';
+  DOM.capturedVideoPlayer.src = blobUrl;
+  if (DOM.videoMetaLabel) {
+    DOM.videoMetaLabel.textContent = `Vonage Stream Clip (${duration}s)`;
+  }
+}
+
+// Vonage API Config Modal Handlers
+function initVonageConfigListeners() {
+  if (!DOM.vonageConfigBtn || !DOM.vonageModal) return;
+
+  // Pre-fill existing credentials
+  if (window.vonageService) {
+    DOM.vonageApiKeyInput.value = window.vonageService.credentials.apiKey || '';
+    DOM.vonageSessionIdInput.value = window.vonageService.credentials.sessionId || '';
+    DOM.vonageTokenInput.value = window.vonageService.credentials.token || '';
+  }
+
+  DOM.vonageConfigBtn.addEventListener('click', () => {
+    DOM.vonageModal.style.display = 'flex';
+  });
+
+  DOM.closeVonageModalBtn.addEventListener('click', () => {
+    DOM.vonageModal.style.display = 'none';
+  });
+
+  DOM.saveVonageConfigBtn.addEventListener('click', async () => {
+    const apiKey = DOM.vonageApiKeyInput.value.trim();
+    const sessionId = DOM.vonageSessionIdInput.value.trim();
+    const token = DOM.vonageTokenInput.value.trim();
+
+    if (window.vonageService) {
+      window.vonageService.saveCredentials(apiKey, sessionId, token);
+      DOM.vonageConnStatus.textContent = apiKey 
+        ? "Credentials saved. Connecting to Vonage session..." 
+        : "Local Publisher Mode active.";
+      DOM.vonageConnStatus.style.borderLeftColor = "#3b82f6";
+
+      // Re-initialize publisher with new credentials
+      await window.vonageService.initPublisher('vonage-publisher-container', (status) => {
+        updateHudStatus(status.label, status.active);
+      });
+
+      setTimeout(() => {
+        DOM.vonageModal.style.display = 'none';
+      }, 700);
+    }
   });
 }
 
 function loadPreset(index) {
   state.isCameraActive = false;
   const preset = DEMO_PRESETS[index];
+  const pubBox = document.getElementById('vonage-publisher-container');
+  if (pubBox) pubBox.style.display = 'none';
   DOM.video.style.display = 'none';
   DOM.demoImage.style.display = 'block';
   DOM.demoImage.src = preset.image;
@@ -147,6 +311,9 @@ function loadPreset(index) {
     .join('');
 
   updateHudStatus(`DEMO CONTEXT: ${preset.name.split(' ')[0]}`, false);
+  if (DOM.vonageHudBadge) {
+    DOM.vonageHudBadge.textContent = 'DEMO PRESET ACTIVE';
+  }
 }
 
 function updateHudStatus(text, isLive) {
@@ -240,7 +407,10 @@ function transitionToStudioScreen() {
     const activeLook = getCurrentActiveLook();
     if (activeLook) {
       DOM.aiReasoningText.textContent = activeLook.rationale;
-      appendChatMessage('stylist', `✨ Synthesized 4 personalized looks. Look #3 is **Tribeca Candlelight Dinner**! Swipe through the deck or tap ♥ to add to cart.`);
+      const mediaNotice = (state.capturedPhoto || state.capturedVideo)
+        ? " with your Vonage video/photo context 📸"
+        : "";
+      appendChatMessage('stylist', `✨ Synthesized 4 personalized looks${mediaNotice}. Look #3 is **Tribeca Candlelight Dinner**! Swipe through the deck or tap ♥ to add to cart.`);
     }
   }, 750);
 }

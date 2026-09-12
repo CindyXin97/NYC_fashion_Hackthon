@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Vonage Video API (OpenTok Client SDK) -->
+  <script src="https://static.opentok.com/v2/js/opentok.min.js"></script>
 </head>
 <body>
 
@@ -61,6 +63,8 @@
           <!-- Video & Visual Context Stage -->
           <div>
             <div class="video-stage" id="video-stage">
+              <!-- Vonage Video Publisher Container -->
+              <div id="vonage-publisher-container" class="vonage-publisher-box"></div>
               <video id="webcam-video" autoplay playsinline muted></video>
               <img id="demo-image-preview" src="" alt="Demo Preset Context">
 
@@ -68,9 +72,9 @@
                 <div class="hud-header">
                   <div class="hud-status" id="hud-status">
                     <span class="rec-dot"></span>
-                    <span id="hud-status-text">LIVE VISION FEED</span>
+                    <span id="hud-status-text">VONAGE VIDEO API: LIVE</span>
                   </div>
-                  <div class="hud-status">AI SCANNER ACTIVE</div>
+                  <div class="hud-status" id="vonage-hud-badge">VONAGE 720p 30FPS</div>
                 </div>
 
                 <div class="hud-detected-box">
@@ -90,16 +94,47 @@
               </div>
             </div>
 
+            <!-- Vonage Video & Photo Controls -->
             <div class="video-controls">
-              <button class="btn-secondary" id="toggle-camera-btn">
-                <span>📹 Toggle Live Camera</span>
+              <button class="btn-secondary" id="toggle-camera-btn" title="Toggle camera stream">
+                <span>📹 Toggle Camera</span>
               </button>
-              <button class="btn-secondary" id="cycle-preset-btn">
-                <span>✨ Use Demo Preset Video</span>
+              <button class="btn-secondary btn-vonage-action" id="capture-snapshot-btn" title="Capture high-res photo using Vonage API">
+                <span>📸 Take Photo (Vonage)</span>
               </button>
-              <button class="btn-secondary" id="capture-snapshot-btn">
-                <span>📸 Capture Context</span>
+              <button class="btn-secondary btn-vonage-action" id="record-video-btn" title="Record a 5s video clip from Vonage stream">
+                <span id="record-video-label">🎥 Record Video (Vonage)</span>
               </button>
+              <button class="btn-secondary" id="cycle-preset-btn" title="Cycle demo styling presets">
+                <span>✨ Demo Presets</span>
+              </button>
+              <button class="btn-secondary" id="vonage-config-btn" title="Configure Vonage API credentials">
+                <span>⚙️ Vonage API</span>
+              </button>
+            </div>
+
+            <!-- Captured Media Panel (Vonage Photo & Video Clips) -->
+            <div class="captured-media-panel" id="captured-media-panel" style="display: none;">
+              <div class="captured-media-header">
+                <span class="captured-badge">⚡ Vonage Captured Context</span>
+                <span class="captured-tag" id="captured-tag">Ready for Gemini</span>
+              </div>
+              <div class="captured-media-grid">
+                <div class="media-card" id="photo-preview-card" style="display: none;">
+                  <div class="media-card-title">Snapshot Photo</div>
+                  <div class="media-card-thumb">
+                    <img id="captured-photo-img" src="" alt="Vonage Snapshot" />
+                  </div>
+                  <span class="media-card-meta">Vonage publisher.getImgData()</span>
+                </div>
+                <div class="media-card" id="video-preview-card" style="display: none;">
+                  <div class="media-card-title">Recorded Clip</div>
+                  <div class="media-card-thumb">
+                    <video id="captured-video-player" controls playsinline></video>
+                  </div>
+                  <span class="media-card-meta" id="video-meta-label">Vonage Media Stream</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -346,10 +381,45 @@
         </button>
       </div>
     </div>
+  <!-- Vonage Settings Modal -->
+  <div class="modal-backdrop" id="vonage-modal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-badge">VONAGE VIDEO API</div>
+      <h3 class="modal-title">Vonage Video Configuration</h3>
+      <p class="modal-subtitle">Connect a live Vonage Video cloud session, or run in local Publisher mode for your hackathon presentation.</p>
+
+      <div class="receipt-card" style="text-align: left; margin: 18px 0;">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 4px;">Vonage API Key</label>
+          <input type="text" id="vonage-api-key-input" placeholder="e.g. 47683921" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 0.85rem;" />
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 4px;">Vonage Session ID</label>
+          <input type="text" id="vonage-session-id-input" placeholder="e.g. 2_MX4xMDB-..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 0.85rem;" />
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 4px;">Client Token</label>
+          <input type="password" id="vonage-token-input" placeholder="e.g. T1==cGFydG5lc..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 0.85rem;" />
+        </div>
+        <div id="vonage-conn-status" style="font-size: 0.75rem; color: #666; padding: 6px 10px; background: #fafafa; border-radius: 6px; border-left: 3px solid #10b981;">
+          Status: Vonage Publisher Active (Local Mode ready)
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary" id="close-vonage-modal-btn" style="flex: 1;">
+          <span>Close</span>
+        </button>
+        <button class="btn-primary" id="save-vonage-config-btn" style="flex: 1;">
+          <span>Connect Session</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->
   <script src="mockData.js"></script>
+  <script src="vonageService.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
