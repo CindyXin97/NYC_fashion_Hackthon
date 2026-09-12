@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitSwipe — AI-Powered Fashion Discovery & Cart Refinement</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-logo">FitSwipe</div>
+      <div class="brand-tagline">Video Context → AI Outfit → Cart</div>
+    </div>
+    <div class="header-actions">
+      <div class="badge-hackathon">NYC FASHION HACKATHON MVP</div>
+      <button class="btn-cart" id="open-cart-btn" aria-label="Open shopping cart">
+        <span>Cart</span>
+        <span class="cart-counter" id="cart-count">5</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Step Progression Bar -->
+  <nav class="workflow-progress">
+    <div class="progress-step active" id="step-nav-1">
+      <div class="step-num">1</div>
+      <span>Video Context</span>
+    </div>
+    <div class="progress-step active" id="step-nav-2">
+      <div class="step-num">2</div>
+      <span>Style Brief</span>
+    </div>
+    <div class="progress-step" id="step-nav-3">
+      <div class="step-num">3</div>
+      <span>Gemini Swipe Deck</span>
+    </div>
+    <div class="progress-step" id="step-nav-4">
+      <div class="step-num">4</div>
+      <span>Cart & Checkout</span>
+    </div>
+  </nav>
+
+  <!-- Main Multi-Screen Container -->
+  <main class="screens-container">
+
+    <!-- Screen 1: Intake & Video Preference Screen -->
+    <section class="screen-view active" id="intake-screen">
+      <div class="section-panel">
+        <div class="section-header">
+          <h2 class="section-title">Context & Preference Intake</h2>
+          <p class="section-desc">Show yourself or inspiration on camera, pick your setting, and let Gemini synthesize complete, shoppable outfits.</p>
+        </div>
+
+        <div class="intake-grid">
+          <!-- Video & Visual Context Stage -->
+          <div>
+            <div class="video-stage" id="video-stage">
+              <video id="webcam-video" autoplay playsinline muted></video>
+              <img id="demo-image-preview" src="" alt="Demo Preset Context">
+
+              <div class="video-hud-overlay">
+                <div class="hud-header">
+                  <div class="hud-status" id="hud-status">
+                    <span class="rec-dot"></span>
+                    <span id="hud-status-text">LIVE VISION FEED</span>
+                  </div>
+                  <div class="hud-status">AI SCANNER ACTIVE</div>
+                </div>
+
+                <div class="hud-detected-box">
+                  <div class="detected-label">Detected Visual Context</div>
+                  <div class="detected-items-text" id="detected-items-text">Black Minimalist Turtleneck • Neutral Undertones</div>
+                </div>
+
+                <div class="hud-footer">
+                  <div class="color-swatches" id="detected-palette">
+                    <div class="swatch-circle" style="background: #1a1a1d;"></div>
+                    <div class="swatch-circle" style="background: #e8d8c8;"></div>
+                    <div class="swatch-circle" style="background: #3e4451;"></div>
+                    <div class="swatch-circle" style="background: #cbbba9;"></div>
+                  </div>
+                  <div class="detected-label" id="silhouette-label" style="color: #111;">Silhouette: Boxy Drape</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="video-controls">
+              <button class="btn-secondary" id="toggle-camera-btn">
+                <span>📹 Toggle Live Camera</span>
+              </button>
+              <button class="btn-secondary" id="cycle-preset-btn">
+                <span>✨ Use Demo Preset Video</span>
+              </button>
+              <button class="btn-secondary" id="capture-snapshot-btn">
+                <span>📸 Capture Context</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Style Brief Questionnaire -->
+          <div class="brief-container">
+            <!-- Question 1: Occasion -->
+            <div class="brief-group">
+              <label class="brief-label">1. Occasion / Setting</label>
+              <div class="options-row" id="occasion-options">
+                <button class="option-pill active" data-val="Rooftop Date (Meatpacking)">Rooftop Date (Meatpacking)</button>
+                <button class="option-pill" data-val="SoHo Art Gallery Opening">SoHo Art Gallery Opening</button>
+                <button class="option-pill" data-val="Downtown Dinner & Cocktails">Downtown Dinner & Cocktails</button>
+                <button class="option-pill" data-val="Casual West Village Coffee">Casual West Village Coffee</button>
+              </div>
+            </div>
+
+            <!-- Question 2: Desired Vibe -->
+            <div class="brief-group">
+              <label class="brief-label">2. Desired Vibe / Aesthetic</label>
+              <div class="options-row" id="vibe-options">
+                <button class="option-pill active" data-val="Quiet Luxury">Quiet Luxury</button>
+                <button class="option-pill" data-val="Downtown NYC Chic">Downtown NYC Chic</button>
+                <button class="option-pill" data-val="Architectural Minimalist">Architectural Minimalist</button>
+                <button class="option-pill" data-val="Edgy After-Hours">Edgy After-Hours</button>
+              </div>
+            </div>
+
+            <!-- Question 3: Budget Range -->
+            <div class="brief-group">
+              <label class="brief-label">3. Target Outfit Budget</label>
+              <div class="options-row" id="budget-options">
+                <button class="option-pill" data-val="Under $300">Under $300</button>
+                <button class="option-pill" data-val="$300 - $600">$300 - $600</button>
+                <button class="option-pill active" data-val="Contemporary Designer ($800 - $1,500)">Contemporary Designer ($800 - $1,500)</button>
+                <button class="option-pill" data-val="High Luxury ($2,000+)">High Luxury ($2,000+)</button>
+              </div>
+            </div>
+
+            <!-- Question 4: Brand Inspiration -->
+            <div class="brief-group">
+              <label class="brief-label">4. Key Brand / KOL Inspirations</label>
+              <div class="options-row" id="brand-options">
+                <button class="option-pill active" data-val="The Row & Khaite">The Row & Khaite</button>
+                <button class="option-pill" data-val="Toteme & COS Atelier">Toteme & COS Atelier</button>
+                <button class="option-pill" data-val="Acne Studios & Jacquemus">Acne Studios & Jacquemus</button>
+                <button class="option-pill" data-val="Frankie Shop & Reformation">Frankie Shop & Reformation</button>
+              </div>
+            </div>
+
+            <!-- Question 5: Additional Prompt -->
+            <div class="brief-group">
+              <label class="brief-label">5. Custom Note / Constraint (Optional)</label>
+              <input type="text" class="brief-input" id="custom-prompt-input" placeholder="e.g., Needs to withstand 50°F rooftop breeze, prefer no high heels...">
+            </div>
+
+            <button class="btn-primary" id="generate-look-btn" style="width: 100%;">
+              <span>✦ Synthesize Look with Gemini</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 2: Studio Swiping Experience (Emerged after synthesis click) -->
+    <section class="screen-view" id="studio-screen">
+      <div class="studio-top-nav">
+        <button class="btn-back-brief" id="btn-back-brief">
+          <span>← Back to Style Brief & Camera</span>
+        </button>
+        <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);">Interactive Tinder Outfit Deck</span>
+      </div>
+
+      <!-- Gemini Multimodal Stylist Rationale -->
+      <div class="ai-reasoning-banner" id="ai-reasoning-banner">
+        <div class="gemini-sparkle-icon">✦</div>
+        <div>
+          <div class="ai-reasoning-title">
+            <span>Gemini Multimodal Stylist Synthesis</span>
+            <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">(Model: Gemini 2.0 Flash)</span>
+          </div>
+          <div class="ai-reasoning-text" id="ai-reasoning-text">
+            Synthesizing visual context from camera (neutral mockneck undertones) with your Rooftop Date brief. Curated a high-contrast architectural silhouette featuring the Khaite wool trench, Toteme habotai silk, and sculptural kitten heels.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tinder-Style Outfit Deck Section -->
+      <div class="swipe-deck-wrapper">
+        <div class="swipe-instructions">
+          <span>👈 Swipe Left to Pass</span>
+          <span>•</span>
+          <span>👉 Swipe Right to Like & Cart</span>
+          <span>•</span>
+          <span>👆 Drag or Tap Buttons</span>
+        </div>
+
+        <!-- The Swipable Stack -->
+        <div class="swipe-card-stack" id="swipe-card-stack">
+          <!-- Populated dynamically with pieced-together outfit cards -->
+        </div>
+
+        <!-- Tinder Action Buttons -->
+        <div class="tinder-actions-bar">
+          <button class="tinder-btn tinder-btn-small" id="btn-tinder-rewind" title="Rewind Previous Look">
+            <span>↺</span>
+          </button>
+          <button class="tinder-btn tinder-btn-large btn-tinder-nope" id="btn-tinder-nope" title="Pass / Next Look">
+            <span>✕</span>
+          </button>
+          <button class="tinder-btn tinder-btn-small btn-tinder-chat" id="btn-tinder-refine" title="Refine with Gemini">
+            <span>✦</span>
+          </button>
+          <button class="tinder-btn tinder-btn-large btn-tinder-like" id="btn-tinder-like" title="Like & Add to Cart">
+            <span>♥</span>
+          </button>
+          <button class="tinder-btn tinder-btn-small btn-tinder-superlike" id="btn-tinder-superlike" title="Superlike & Express Checkout">
+            <span>★</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Conversational Refinement Drawer / Bar -->
+      <div class="refinement-container">
+        <div class="refinement-header">
+          <div class="refinement-title">
+            <span>💬 Conversational Stylist Refinement</span>
+            <span class="ai-typing-indicator" id="typing-indicator">Gemini is updating your outfit...</span>
+          </div>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">Updates active outfit live</span>
+        </div>
+
+        <!-- Quick 1-Click Action Chips for Judges -->
+        <div class="chips-row" id="quick-chips-row">
+          <button class="quick-chip featured-demo-chip" data-action="less-formal-shoes">
+            <span>👟 Make shoes less formal</span>
+            <span class="chip-star">★ Demo</span>
+          </button>
+          <button class="quick-chip" data-action="burgundy-jacket">🧥 Change jacket to burgundy leather</button>
+          <button class="quick-chip" data-action="under-400">💰 Keep style, but bring under $800</button>
+          <button class="quick-chip" data-action="more-edgy">⚡ Make it more edgy / night out</button>
+        </div>
+
+        <!-- Refinement Conversation History -->
+        <div class="chat-history" id="chat-history">
+          <div class="chat-bubble stylist">
+            <strong>Gemini Stylist:</strong> Welcome! I've assembled these personalized looks. You can swipe through the deck, tap any chip above to refine, or chat with me directly!
+          </div>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <form class="chat-input-bar" id="chat-form">
+          <input type="text" class="chat-input" id="chat-input" placeholder="Type an edit (e.g., 'Make shoes more comfortable for walking', 'change bag to black mini')...">
+          <button type="submit" class="btn-send">Send Edit</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Synthesis Loading Fullscreen Overlay -->
+  <div class="synthesis-loading-overlay" id="synthesis-loading-overlay">
+    <div class="synthesis-spinner-ring"></div>
+    <h2 class="synthesis-step-title">✦ Gemini Multimodal Synthesis</h2>
+    <p class="synthesis-step-desc">Analyzing video silhouette, extracting palette undertones, and composing 4 complete designer looks tailored to your brief...</p>
+    <div class="synthesis-progress-pills">
+      <span class="synthesis-progress-pill">Vision Scan: Complete</span>
+      <span class="synthesis-progress-pill">Occasion Brief: Matched</span>
+      <span class="synthesis-progress-pill">Catalog SKUs: Resolved</span>
+    </div>
+  </div>
+
+  <!-- Slide-Over Cart Drawer -->
+  <div class="cart-drawer-overlay" id="cart-drawer-overlay"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3 class="cart-title">Your Shoppable Look</h3>
+      <button class="btn-close-cart" id="close-cart-btn">&times;</button>
+    </div>
+
+    <div class="cart-items-list" id="cart-items-list">
+      <!-- Items dynamically populated -->
+    </div>
+
+    <div class="cart-footer">
+      <div class="cart-calc-row">
+        <span>Items Subtotal</span>
+        <span id="cart-subtotal">$1,683.00</span>
+      </div>
+      <div class="cart-calc-row discount">
+        <span>FitSwipe Hackathon Stylist Promo (-10%)</span>
+        <span id="cart-discount">-$168.30</span>
+      </div>
+      <div class="cart-calc-row">
+        <span>Estimated NY Sales Tax (8.875%)</span>
+        <span id="cart-tax">$134.43</span>
+      </div>
+      <div class="cart-calc-row total">
+        <span>Total Due</span>
+        <span id="cart-total-price">$1,649.13</span>
+      </div>
+      <button class="btn-apple-pay" id="apple-pay-btn">
+        <span>Pay</span>
+        <span>• Express One-Click Checkout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Checkout Confirmation Modal -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-content">
+      <div class="success-icon-wrap">✓</div>
+      <h2 class="modal-title">Outfit Ordered!</h2>
+      <p class="modal-subtitle">Your personalized look has been routed to luxury retailer fulfillment centers across NYC.</p>
+
+      <div class="order-receipt-card">
+        <div class="receipt-row">
+          <span>Order Number:</span>
+          <strong>#FS-2026-98214</strong>
+        </div>
+        <div class="receipt-row">
+          <span>Payment Method:</span>
+          <strong>Apple Pay (•••• 4920)</strong>
+        </div>
+        <div class="receipt-row">
+          <span>Estimated Delivery:</span>
+          <strong>Same-Day NYC Courier (by 6:30 PM)</strong>
+        </div>
+        <div class="receipt-row">
+          <span>Items Confirmed:</span>
+          <strong id="modal-item-count">5 Pieces</strong>
+        </div>
+        <div class="receipt-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-subtle);">
+          <span>Total Paid:</span>
+          <strong style="color: #926f1c; font-size: 1.05rem;" id="modal-total-paid">$1,649.13</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary" id="export-brief-btn" style="flex: 1;">
+          <span>📋 Export Style Brief</span>
+        </button>
+        <button class="btn-primary" id="close-modal-btn" style="flex: 1;">
+          <span>Done</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="mockData.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
