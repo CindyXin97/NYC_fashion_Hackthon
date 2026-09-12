@@ -17,9 +17,10 @@ class VonageService {
     this.recordingInterval = null;
     this.stream = null;
 
-    // Load saved credentials from localStorage if available
+    // Load saved credentials from localStorage or use default Application ID
     this.credentials = {
-      apiKey: localStorage.getItem('fitswipe_vonage_api_key') || '',
+      apiKey: localStorage.getItem('fitswipe_vonage_api_key') || 'a3e92444-4a82-4d48-b963-2342fec8f2a6',
+      applicationId: 'a3e92444-4a82-4d48-b963-2342fec8f2a6',
       sessionId: localStorage.getItem('fitswipe_vonage_session_id') || '',
       token: localStorage.getItem('fitswipe_vonage_token') || ''
     };
