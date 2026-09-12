@@ -213,9 +213,9 @@ function transitionToStudioScreen() {
   DOM.synthesisLoadingOverlay.classList.add('active');
 
   setTimeout(() => {
-    // Reorder deck based on preference match
+    // Tribeca Candlelight Dinner is always the 3rd example (index 2)
     if (state.brief.occasion.includes("Gallery") || state.brief.vibe.includes("Edgy")) {
-      state.deck = [CURATED_LOOKS_DECK[1], CURATED_LOOKS_DECK[3], CURATED_LOOKS_DECK[0], CURATED_LOOKS_DECK[2]];
+      state.deck = [CURATED_LOOKS_DECK[1], CURATED_LOOKS_DECK[0], CURATED_LOOKS_DECK[2], CURATED_LOOKS_DECK[3]];
     } else {
       state.deck = JSON.parse(JSON.stringify(CURATED_LOOKS_DECK));
     }
@@ -240,7 +240,7 @@ function transitionToStudioScreen() {
     const activeLook = getCurrentActiveLook();
     if (activeLook) {
       DOM.aiReasoningText.textContent = activeLook.rationale;
-      appendChatMessage('stylist', `✨ Synthesized 4 personalized looks for **${state.brief.occasion}**. Swipe right (or tap ♥) to like & add an outfit to cart!`);
+      appendChatMessage('stylist', `✨ Synthesized 4 personalized looks. Look #3 is **Tribeca Candlelight Dinner**! Swipe through the deck or tap ♥ to add to cart.`);
     }
   }, 750);
 }
@@ -612,14 +612,60 @@ function initRefinementListeners() {
 }
 
 function applyRefinementToActiveLook(actionId, look) {
-  if (actionId === 'less-formal-shoes') {
-    // Premier Demo Case: Swap formal kitten-heels for The Row Nappa Loafers
+  if (actionId === 'burgundy-jacket') {
+    // Premier Demo Case: Swap coat for custom AI-generated Acne Studios Burgundy Leather Moto
+    look.items.outerwear = "out-2";
+    
+    // Specifically swap the image to the newly generated burgundy leather jacket visual!
+    look.heroImage = "/images/tribeca_burgundy_jacket.jpg";
+    look.refinedBadge = "✓ Acne Studios Burgundy Leather (-$60)";
+    updateLookHotspot(look, 'outerwear', 'Acne Studios Burgundy Moto • $580');
+
+    // Also update Tribeca Candlelight Dinner specifically if in deck
+    const tribeca = state.deck.find(l => l.id === 'look-tribeca');
+    if (tribeca) {
+      tribeca.items.outerwear = "out-2";
+      tribeca.heroImage = "/images/tribeca_burgundy_jacket.jpg";
+      tribeca.refinedBadge = "✓ Acne Studios Burgundy Leather (-$60)";
+      updateLookHotspot(tribeca, 'outerwear', 'Acne Studios Burgundy Moto • $580');
+    }
+
+    // Automatically sync cart items with the newly chosen jacket
+    const outIndex = state.cartItems.findIndex(i => i.category === 'outerwear');
+    const newOutItem = MOCK_CATALOG.outerwear.find(i => i.id === 'out-2');
+    if (outIndex !== -1 && newOutItem) {
+      state.cartItems[outIndex] = newOutItem;
+      updateCartDrawer();
+    }
+
+    renderSwipeDeck();
+
+    // Pulse animation on the updated card and outerwear hotspot
+    const topCard = DOM.swipeCardStack.querySelector('.card-depth-0');
+    if (topCard) {
+      topCard.classList.add('card-refined-glow');
+      const pins = topCard.querySelectorAll('.hotspot-pin');
+      pins.forEach(pin => {
+        if (pin.title.includes('Acne Studios') || pin.title.includes('Burgundy') || pin.title.includes('Moto') || pin.title.includes('$580')) {
+          const beacon = pin.querySelector('.hotspot-beacon');
+          if (beacon) beacon.classList.add('updated');
+        }
+      });
+    }
+
+    appendChatMessage('stylist', `
+      Swapped the classic wool coat ($640) for the <strong>Acne Studios Washed Lambskin Moto Jacket in Deep Burgundy ($580)</strong> with our custom AI outfit visualization!
+      <br><br>
+      <strong>✦ Stylist Preservation Rationale:</strong> Preserved the silk blouse and tailored trousers while generating a custom photo showing your exact model in the rich burgundy leather moto jacket for Tribeca evening dining.
+      <br><br>
+      <strong>💰 Price Delta:</strong> Outfit total reduced by <strong>$60</strong>. Automatically synced with your shoppable cart!
+    `);
+  } else if (actionId === 'less-formal-shoes') {
     look.items.shoes = "sho-2";
     look.heroImage = "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=85";
     look.refinedBadge = "✓ The Row Loafers (-$155)";
     updateLookHotspot(look, 'shoes', 'The Row Nappa Loafers • $240');
 
-    // Automatically sync cart items with the newly chosen shoe
     const shoeIndex = state.cartItems.findIndex(i => i.category === 'shoes');
     const newShoeItem = MOCK_CATALOG.shoes.find(i => i.id === 'sho-2');
     if (shoeIndex !== -1 && newShoeItem) {
@@ -629,7 +675,6 @@ function applyRefinementToActiveLook(actionId, look) {
 
     renderSwipeDeck();
 
-    // Pulse animation on the updated card and shoe hotspot
     const topCard = DOM.swipeCardStack.querySelector('.card-depth-0');
     if (topCard) {
       topCard.classList.add('card-refined-glow');
@@ -645,15 +690,10 @@ function applyRefinementToActiveLook(actionId, look) {
     appendChatMessage('stylist', `
       Swapped formal pointed kitten heels ($395) for <strong>The Row Soft Nappa Leather Loafers ($240)</strong>.
       <br><br>
-      <strong>✦ Stylist Preservation Rationale:</strong> Kept your <em>Khaite Florence Wool Trench</em> ($640) and <em>Toteme Habotai Silk Blouse</em> ($340) intact to maintain the quiet luxury aesthetic, while adapting footwear for walking comfort on Meatpacking cobblestones.
+      <strong>✦ Stylist Preservation Rationale:</strong> Kept your other pieces intact to maintain the quiet luxury aesthetic while adapting footwear for walking comfort on NYC cobblestones.
       <br><br>
-      <strong>💰 Price Delta:</strong> Total outfit reduced from <strong>$1,683</strong> to <strong>$1,528</strong> (<em>-$155 savings</em>). Automatically synced with your shoppable cart!
+      <strong>💰 Price Delta:</strong> Total outfit reduced by <strong>$155</strong>. Automatically synced with your shoppable cart!
     `);
-  } else if (actionId === 'burgundy-jacket') {
-    look.items.outerwear = "out-2";
-    updateLookHotspot(look, 'outerwear', 'Acne Studios Burgundy Moto • $580');
-    renderSwipeDeck();
-    appendChatMessage('stylist', "Updated jacket to **Acne Studios Washed Lambskin Moto** in Deep Burgundy for rich seasonal color contrast.");
   } else if (actionId === 'under-400') {
     look.items.outerwear = "out-3"; // COS $220
     look.items.tops = "top-2"; // Babaton $98
@@ -691,7 +731,20 @@ function handleNaturalLanguageQuery(text) {
   const look = getCurrentActiveLook();
   if (!look) return;
 
-  // Golden Demo Use Case: Flexible natural language matching for shoe refinement
+  // Golden Demo Use Case: Flexible natural language matching for Burgundy leather jacket
+  if (
+    lower.includes('jacket') ||
+    lower.includes('leather') ||
+    lower.includes('burgundy') ||
+    lower.includes('coat') ||
+    lower.includes('moto') ||
+    lower.includes('biker') ||
+    lower.includes('outerwear') ||
+    lower.includes('red')
+  ) {
+    applyRefinementToActiveLook('burgundy-jacket', look);
+    return;
+  }
   if (
     lower.includes('shoe') ||
     lower.includes('footwear') ||
@@ -699,14 +752,9 @@ function handleNaturalLanguageQuery(text) {
     lower.includes('loafer') ||
     lower.includes('flat') ||
     lower.includes('comfort') ||
-    lower.includes('walk') ||
-    lower.includes('formal')
+    lower.includes('walk')
   ) {
     applyRefinementToActiveLook('less-formal-shoes', look);
-    return;
-  }
-  if (lower.includes('jacket') || lower.includes('leather') || lower.includes('burgundy') || lower.includes('coat')) {
-    applyRefinementToActiveLook('burgundy-jacket', look);
     return;
   }
   if (lower.includes('budget') || lower.includes('price') || lower.includes('cheaper') || lower.includes('under') || lower.includes('save')) {

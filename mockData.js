@@ -311,6 +311,32 @@ const CURATED_LOOKS_DECK = [
     ]
   },
   {
+    id: "look-tribeca",
+    name: "Tribeca Candlelight Dinner",
+    subtitle: "Monochrome Sleek • Fluid Silk & Architectural Outerwear",
+    heroImage: "/images/tribeca_original.jpg",
+    burgundyLeatherImage: "/images/tribeca_burgundy_jacket.jpg",
+    vibe: "Monochrome Obsidian / Evening Dining",
+    occasion: "Downtown Dinner & Cocktails",
+    matchScore: 97,
+    rationale: "Synthesized for evening dining: tailored Khaite wool coat draped over Toteme habotai silk, structured Frankie Shop trousers, and Missoma molten metal accents.",
+    items: {
+      outerwear: "out-1",
+      tops: "top-1",
+      bottoms: "bot-1",
+      shoes: "sho-1",
+      bags: "bag-2",
+      accessories: "acc-2"
+    },
+    hotspots: [
+      { category: "outerwear", top: "44%", left: "54%", label: "Khaite Wool Trench • $640" },
+      { category: "tops", top: "48%", left: "52%", label: "Toteme Silk Blouse • $340" },
+      { category: "bottoms", top: "72%", left: "48%", label: "Frankie Shop Trousers • $215" },
+      { category: "shoes", top: "91%", left: "43%", label: "Neous Kitten Heels • $395" },
+      { category: "bags", top: "58%", left: "24%", label: "Jacquemus Mini • $360" }
+    ]
+  },
+  {
     id: "look-highline",
     name: "West Chelsea Highline Flow",
     subtitle: "Modern Tailored Casual • Accessible Minimalist Luxury",
@@ -334,31 +360,6 @@ const CURATED_LOOKS_DECK = [
       { category: "shoes", top: "92%", left: "44%", label: "New Balance 990v6 • $210" },
       { category: "bags", top: "58%", left: "28%", label: "Arket Half-Moon Bag • $135" }
     ]
-  },
-  {
-    id: "look-tribeca",
-    name: "Tribeca Candlelight Dinner",
-    subtitle: "Monochrome Sleek • Fluid Silk & Architectural Outerwear",
-    heroImage: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=85",
-    vibe: "Monochrome Obsidian / Evening Dining",
-    occasion: "Downtown Dinner & Cocktails",
-    matchScore: 97,
-    rationale: "High-contrast evening styling: dramatic drape with Toteme habotai silk, structured trousers, sculptural pointed pumps, and Missoma molten metal accents.",
-    items: {
-      outerwear: "out-1",
-      tops: "top-1",
-      bottoms: "bot-1",
-      shoes: "sho-1",
-      bags: "bag-2",
-      accessories: "acc-2"
-    },
-    hotspots: [
-      { category: "outerwear", top: "30%", left: "36%", label: "Khaite Wool Trench • $640" },
-      { category: "tops", top: "44%", left: "52%", label: "Toteme Silk Blouse • $340" },
-      { category: "bottoms", top: "67%", left: "46%", label: "Frankie Shop Trousers • $215" },
-      { category: "shoes", top: "91%", left: "43%", label: "Neous Kitten Heels • $395" },
-      { category: "bags", top: "56%", left: "66%", label: "Jacquemus Mini • $360" }
-    ]
   }
 ];
 
@@ -366,8 +367,8 @@ const CURATED_LOOKS_DECK = [
 const DEFAULT_LOOKS = {
   meatpacking: CURATED_LOOKS_DECK[0],
   soho: CURATED_LOOKS_DECK[1],
-  highline: CURATED_LOOKS_DECK[2],
-  tribeca: CURATED_LOOKS_DECK[3]
+  tribeca: CURATED_LOOKS_DECK[2],
+  highline: CURATED_LOOKS_DECK[3]
 };
 
 // Conversational refinement rules
