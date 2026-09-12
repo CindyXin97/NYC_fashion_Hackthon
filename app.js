@@ -387,6 +387,39 @@ function transitionToStudioScreen() {
       state.deck = JSON.parse(JSON.stringify(CURATED_LOOKS_DECK));
     }
 
+    // IF user captured a photo with Vonage: synthesize custom look #1 on user's photo!
+    if (state.capturedPhoto) {
+      const occasionPrefix = state.brief.occasion.split(' ')[0] || "Custom";
+      const personalizedLook = {
+        id: "look-personalized-user",
+        name: `Your Personalized ${occasionPrefix} Look`,
+        subtitle: `AI Synthesized on Your Photo • ${state.brief.vibe}`,
+        heroImage: state.capturedPhoto,
+        isUserPhotoLook: true,
+        vibe: state.brief.vibe,
+        occasion: state.brief.occasion,
+        matchScore: 99,
+        refinedBadge: "✦ AI Synthesized on Your Photo ✨",
+        rationale: `Custom synthesized directly on your captured silhouette & undertones: tailored Khaite outerwear draped over Toteme silk blouse, paired with Frankie Shop wide trousers and luxury footwear.`,
+        items: {
+          outerwear: "out-1",
+          tops: "top-1",
+          bottoms: "bot-1",
+          shoes: "sho-1",
+          bags: "bag-1",
+          accessories: "acc-1"
+        },
+        hotspots: [
+          { category: "outerwear", top: "30%", left: "38%", label: "Khaite Wool Trench • $640" },
+          { category: "tops", top: "45%", left: "54%", label: "Toteme Silk Blouse • $340" },
+          { category: "bottoms", top: "68%", left: "46%", label: "Frankie Shop Trousers • $215" },
+          { category: "shoes", top: "89%", left: "42%", label: "Neous Kitten Heels • $395" },
+          { category: "bags", top: "58%", left: "26%", label: "Mansur Gavriel Clutch • $295" }
+        ]
+      };
+      state.deck.unshift(personalizedLook);
+    }
+
     state.currentCardIndex = 0;
     state.swipedHistory = [];
     renderSwipeDeck();
@@ -407,10 +440,10 @@ function transitionToStudioScreen() {
     const activeLook = getCurrentActiveLook();
     if (activeLook) {
       DOM.aiReasoningText.textContent = activeLook.rationale;
-      const mediaNotice = (state.capturedPhoto || state.capturedVideo)
-        ? " with your Vonage video/photo context 📸"
-        : "";
-      appendChatMessage('stylist', `✨ Synthesized 4 personalized looks${mediaNotice}. Look #3 is **Tribeca Candlelight Dinner**! Swipe through the deck or tap ♥ to add to cart.`);
+      const mediaNotice = state.capturedPhoto
+        ? " with your captured photo styled on Card #1 📸✨"
+        : (state.capturedVideo ? " with your Vonage video context 🎥" : "");
+      appendChatMessage('stylist', `✨ Synthesized ${state.deck.length} personalized looks${mediaNotice}! Swipe through the deck or tap ♥ to add to cart.`);
     }
   }, 750);
 }
@@ -516,8 +549,13 @@ function createSwipeCardElement(look, depthIndex, isInteractive) {
     <div class="tinder-stamp stamp-superlike">SUPER LIKE</div>
 
     <!-- Assembled Complete Outfit Visual -->
-    <div class="assembled-visual-wrap">
-      <img class="assembled-img" src="${look.heroImage}" alt="${look.name}">
+    <div class="assembled-visual-wrap ${look.isUserPhotoLook ? 'user-photo-assembled-wrap' : ''}">
+      <img class="assembled-img ${look.isUserPhotoLook ? 'user-photo-model-img' : ''}" src="${look.heroImage}" alt="${look.name}">
+      ${look.isUserPhotoLook ? `
+        <div class="pill-tryon-overlay">
+          <span class="pulse-sparkle">✨</span> Styled on Your Photo
+        </div>
+      ` : ''}
       ${hotspotsHtml}
     </div>
 

@@ -1689,3 +1689,48 @@ body {
   text-align: center;
 }
 
+/* User Photo Try-On Card Styling */
+.user-photo-assembled-wrap {
+  background: #111;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-photo-model-img {
+  filter: contrast(1.05) saturate(1.03);
+  transition: transform 0.3s ease;
+}
+
+.pill-tryon-overlay {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 160, 63, 0.45);
+  color: #111;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 5px 13px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 5;
+  pointer-events: none;
+  animation: fadeInDown 0.4s ease;
+}
+
+.pulse-sparkle {
+  color: var(--accent-gold);
+  display: inline-block;
+  animation: pulse-sparkle 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-sparkle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+}
+
+
