@@ -1689,48 +1689,71 @@ body {
   text-align: center;
 }
 
-/* User Photo Try-On Card Styling */
-.user-photo-assembled-wrap {
-  background: #111;
-  position: relative;
-  overflow: hidden;
-}
-
-.user-photo-model-img {
-  filter: contrast(1.05) saturate(1.03);
-  transition: transform 0.3s ease;
-}
-
-.pill-tryon-overlay {
+/* User Face Try-On Overlay (Blends User Head onto Generated Outfit Body) */
+.user-face-tryon-box {
   position: absolute;
   top: 14px;
-  left: 14px;
-  background: rgba(255, 255, 255, 0.94);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 142px;
+  height: 172px;
+  z-index: 4;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.user-face-mask {
+  width: 100%;
+  height: 100%;
+  border-radius: 50% 50% 46% 46% / 54% 54% 46% 46%;
+  overflow: hidden;
+  -webkit-mask-image: radial-gradient(ellipse 50% 52% at 50% 48%, black 74%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 52% at 50% 48%, black 74%, transparent 100%);
+}
+
+.user-face-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 36%;
+  transform: scale(1.15);
+  filter: contrast(1.04) saturate(1.02);
+}
+
+.btn-toggle-head-fit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(226, 160, 63, 0.45);
+  border: 1px solid rgba(0, 0, 0, 0.14);
   color: #111;
-  font-size: 0.74rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 5px 13px;
+  padding: 5px 12px;
   border-radius: 999px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  z-index: 15;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
-  z-index: 5;
-  pointer-events: none;
-  animation: fadeInDown 0.4s ease;
+  gap: 4px;
 }
 
-.pulse-sparkle {
-  color: var(--accent-gold);
-  display: inline-block;
-  animation: pulse-sparkle 1.5s infinite ease-in-out;
+.btn-toggle-head-fit:hover {
+  background: #fff;
+  transform: scale(1.04);
+  border-color: var(--accent-gold);
 }
 
-@keyframes pulse-sparkle {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.35); }
+.btn-toggle-head-fit.inactive {
+  background: rgba(24, 24, 27, 0.85);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
+
 
 

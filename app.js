@@ -387,34 +387,34 @@ function transitionToStudioScreen() {
       state.deck = JSON.parse(JSON.stringify(CURATED_LOOKS_DECK));
     }
 
-    // IF user captured a photo with Vonage: synthesize custom look #1 on user's photo!
+    // IF user captured a photo with Vonage: synthesize custom look #1 with generated clothes + user's head!
     if (state.capturedPhoto) {
       const occasionPrefix = state.brief.occasion.split(' ')[0] || "Custom";
       const personalizedLook = {
         id: "look-personalized-user",
         name: `Your Personalized ${occasionPrefix} Look`,
-        subtitle: `AI Synthesized on Your Photo • ${state.brief.vibe}`,
-        heroImage: state.capturedPhoto,
+        subtitle: `Khaite Wool Trench & Toteme Silk • Styled on Your Silhouette`,
+        heroImage: "/images/tribeca_original.jpg",
         isUserPhotoLook: true,
         vibe: state.brief.vibe,
         occasion: state.brief.occasion,
         matchScore: 99,
-        refinedBadge: "✦ AI Synthesized on Your Photo ✨",
-        rationale: `Custom synthesized directly on your captured silhouette & undertones: tailored Khaite outerwear draped over Toteme silk blouse, paired with Frankie Shop wide trousers and luxury footwear.`,
+        refinedBadge: "✦ AI Fitted on You ✨",
+        rationale: `Synthesized luxury ensemble fitted directly on your silhouette: tailored Khaite wool outerwear, draped Toteme silk blouse, Frankie Shop trousers, and sculptural footwear.`,
         items: {
           outerwear: "out-1",
           tops: "top-1",
           bottoms: "bot-1",
           shoes: "sho-1",
-          bags: "bag-1",
-          accessories: "acc-1"
+          bags: "bag-2",
+          accessories: "acc-2"
         },
         hotspots: [
-          { category: "outerwear", top: "30%", left: "38%", label: "Khaite Wool Trench • $640" },
-          { category: "tops", top: "45%", left: "54%", label: "Toteme Silk Blouse • $340" },
-          { category: "bottoms", top: "68%", left: "46%", label: "Frankie Shop Trousers • $215" },
-          { category: "shoes", top: "89%", left: "42%", label: "Neous Kitten Heels • $395" },
-          { category: "bags", top: "58%", left: "26%", label: "Mansur Gavriel Clutch • $295" }
+          { category: "outerwear", top: "44%", left: "54%", label: "Khaite Wool Trench • $640" },
+          { category: "tops", top: "48%", left: "52%", label: "Toteme Silk Blouse • $340" },
+          { category: "bottoms", top: "72%", left: "48%", label: "Frankie Shop Trousers • $215" },
+          { category: "shoes", top: "91%", left: "43%", label: "Neous Kitten Heels • $395" },
+          { category: "bags", top: "58%", left: "24%", label: "Jacquemus Mini • $360" }
         ]
       };
       state.deck.unshift(personalizedLook);
@@ -549,13 +549,25 @@ function createSwipeCardElement(look, depthIndex, isInteractive) {
     <div class="tinder-stamp stamp-superlike">SUPER LIKE</div>
 
     <!-- Assembled Complete Outfit Visual -->
-    <div class="assembled-visual-wrap ${look.isUserPhotoLook ? 'user-photo-assembled-wrap' : ''}">
-      <img class="assembled-img ${look.isUserPhotoLook ? 'user-photo-model-img' : ''}" src="${look.heroImage}" alt="${look.name}">
-      ${look.isUserPhotoLook ? `
-        <div class="pill-tryon-overlay">
-          <span class="pulse-sparkle">✨</span> Styled on Your Photo
+    <div class="assembled-visual-wrap">
+      <!-- Generated Luxury Outfit (Coat, Blouse, Trousers, Heels, Bag) -->
+      <img class="assembled-img" src="${look.heroImage}" alt="${look.name}">
+
+      <!-- User Head Composited on the Outfit Neckline -->
+      ${(look.isUserPhotoLook && state.capturedPhoto) ? `
+        <div class="user-face-tryon-box">
+          <div class="user-face-mask">
+            <img class="user-face-img" src="${state.capturedPhoto}" alt="Your Head" />
+          </div>
         </div>
+        <div class="pill-tryon-overlay">
+          <span class="pulse-sparkle">✨</span> AI Styled: Your Head on Curated Outfit
+        </div>
+        <button class="btn-toggle-head-fit" type="button" title="Toggle Your Head / Model View">
+          <span class="head-toggle-label">👤 Head Fit: ON</span>
+        </button>
       ` : ''}
+
       ${hotspotsHtml}
     </div>
 
@@ -604,6 +616,22 @@ function createSwipeCardElement(look, depthIndex, isInteractive) {
     const isExpanded = panel.classList.toggle('expanded');
     arrow.textContent = isExpanded ? '▴' : '▾';
   });
+
+  // Toggle User Head vs Model View
+  const headToggleBtn = card.querySelector('.btn-toggle-head-fit');
+  if (headToggleBtn) {
+    headToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const faceBox = card.querySelector('.user-face-tryon-box');
+      const label = headToggleBtn.querySelector('.head-toggle-label');
+      if (faceBox) {
+        const isHidden = (faceBox.style.display === 'none');
+        faceBox.style.display = isHidden ? 'block' : 'none';
+        headToggleBtn.classList.toggle('inactive', !isHidden);
+        if (label) label.textContent = isHidden ? '👤 Head Fit: ON' : '👗 Model View';
+      }
+    });
+  }
 
   return card;
 }
@@ -836,6 +864,14 @@ function applyRefinementToActiveLook(actionId, look) {
       tribeca.heroImage = "/images/tribeca_burgundy_jacket.jpg";
       tribeca.refinedBadge = "✓ Acne Studios Burgundy Leather (-$60)";
       updateLookHotspot(tribeca, 'outerwear', 'Acne Studios Burgundy Moto • $580');
+    }
+
+    const pers = state.deck.find(l => l.id === 'look-personalized-user');
+    if (pers) {
+      pers.items.outerwear = "out-2";
+      pers.heroImage = "/images/tribeca_burgundy_jacket.jpg";
+      pers.refinedBadge = "✓ Acne Studios Burgundy Leather (-$60)";
+      updateLookHotspot(pers, 'outerwear', 'Acne Studios Burgundy Moto • $580');
     }
 
     // Automatically sync cart items with the newly chosen jacket
