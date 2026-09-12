@@ -394,7 +394,7 @@ function transitionToStudioScreen() {
         id: "look-personalized-user",
         name: `Your Personalized ${occasionPrefix} Look`,
         subtitle: `Khaite Wool Trench & Toteme Silk • Styled on Your Silhouette`,
-        heroImage: "/images/tribeca_original.jpg",
+        heroImage: "images/tribeca_original.jpg",
         isUserPhotoLook: true,
         vibe: state.brief.vibe,
         occasion: state.brief.occasion,
@@ -853,7 +853,7 @@ function applyRefinementToActiveLook(actionId, look) {
     look.items.outerwear = "out-2";
     
     // Specifically swap the image to the newly generated burgundy leather jacket visual!
-    look.heroImage = "/images/tribeca_burgundy_jacket.jpg";
+    look.heroImage = "images/tribeca_burgundy_jacket.jpg";
     look.refinedBadge = "✓ Acne Studios Burgundy Leather (-$60)";
     updateLookHotspot(look, 'outerwear', 'Acne Studios Burgundy Moto • $580');
 
@@ -861,7 +861,7 @@ function applyRefinementToActiveLook(actionId, look) {
     const tribeca = state.deck.find(l => l.id === 'look-tribeca');
     if (tribeca) {
       tribeca.items.outerwear = "out-2";
-      tribeca.heroImage = "/images/tribeca_burgundy_jacket.jpg";
+      tribeca.heroImage = "images/tribeca_burgundy_jacket.jpg";
       tribeca.refinedBadge = "✓ Acne Studios Burgundy Leather (-$60)";
       updateLookHotspot(tribeca, 'outerwear', 'Acne Studios Burgundy Moto • $580');
     }
@@ -869,7 +869,7 @@ function applyRefinementToActiveLook(actionId, look) {
     const pers = state.deck.find(l => l.id === 'look-personalized-user');
     if (pers) {
       pers.items.outerwear = "out-2";
-      pers.heroImage = "/images/tribeca_burgundy_jacket.jpg";
+      pers.heroImage = "images/tribeca_burgundy_jacket.jpg";
       pers.refinedBadge = "✓ Acne Studios Burgundy Leather (-$60)";
       updateLookHotspot(pers, 'outerwear', 'Acne Studios Burgundy Moto • $580');
     }
